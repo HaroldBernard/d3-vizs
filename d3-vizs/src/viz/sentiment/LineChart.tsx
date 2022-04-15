@@ -98,7 +98,7 @@ import React from 'react';
 // };
 
 // const LineChart = (reportID: string, dimensions: Dimensions) => {
-//   const svgRef = React.useRef(null);
+//   const svgRef = React.useRef();
 //   const { width, height, margin } = dimensions;
 //   const svgWidth = width + margin.left + margin.right;
 //   const svgHeight = height + margin.top + margin.bottom;

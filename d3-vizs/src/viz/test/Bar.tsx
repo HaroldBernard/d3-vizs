@@ -76,7 +76,7 @@ export function Bar(dimensions: Dimensions) {
     // creates y axis
     const yScale = d3
       .scaleLinear()
-      .range([dimensions.height, 0])
+      .range([dimensions.height + 30, 0])
       .domain([0, 100]);
 
     // adds Yaxis to the chart svg
@@ -88,21 +88,39 @@ export function Bar(dimensions: Dimensions) {
       .domain(sample.map((s) => s.language))
       .padding(.3);
 
-    chart
-      .append("g")
-      .attr("transform", `translate(0, ${dimensions.height} -10)`)
-      .call(d3.axisBottom(xScale));
-
-    chart.selectAll()
+    const rect = chart.selectAll()
       .data(sample)
       .enter()
       .append('rect')
       // @ts-ignore
       .attr('x', (s) => xScale(s.language))
       .attr('y', (s) => yScale(s.value))
-      .attr('height', (s) => dimensions.height + yScale(s.value))
+      .attr('height', (s) => dimensions.height )
       .attr('width', xScale.bandwidth())
+      .attr('fill', (s) => s.color)
+
+      rect
+      .on("mouseover", function (this:SVGRectElement, i)  {
+        d3.select(this)
+        .style('width', () => xScale.bandwidth()+10)
+        console.log(this)
+      })
+      .on("mouseout", function (this:SVGRectElement, i) {
+        d3.select(this)
+        .style('width', () => xScale.bandwidth())
+      })
+    
+      chart
+      .append("g")
+      .attr("transform", `translate(0, ${dimensions.height + 30})`)
+      .call(d3.axisBottom(xScale))
+      .selectAll("text")
+      .attr("transform", "rotate(90)")
+      .attr("transform", `translate(0, -20)`)
+      .style("padding-bottom, 24")
+
+    
   }, [dimensions]);
 
-  return <svg width={dimensions.width} height={dimensions.height} viewBox={`0 0 ${dimensions.width} ${dimensions.height}`} ref={ref} />;
+  return <svg width={dimensions.width} height={dimensions.height} viewBox={`0 0 ${dimensions.width + 100} ${dimensions.height + 50}`} ref={ref} />;
 }

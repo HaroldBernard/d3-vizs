@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as d3 from 'd3';
 import { Axis, Orient } from 'd3-axis-for-react';
 
@@ -1298,30 +1298,80 @@ const data = rawData.map((d: any) => {
 }) as Record[];
 
 export default function Test() {
+  const ref = React.useRef();
+
   const width = 600;
   const height = 400;
   const margin = { top: 20, right: 30, bottom: 30, left: 40 };
 
-  const x = d3
-    .scaleUtc()
-    .domain(d3.extent(data, d => d.date) as [Date, Date])
-    .range([margin.left, width - margin.right]);
+  useEffect(() => {
+    if (ref.current) {
+      const parentEl = ref.current;
 
-  const y = d3
-    .scaleLinear<number>()
-    .domain([0, d3.max(data, d => d.value)] as [number, number])
-    .nice()
-    .range([height - margin.bottom, margin.top]);
+      const xScale = d3
+        .scaleUtc()
+        .domain(d3.extent(data, d => d.date) as [Date, Date])
+        .range([0, width - margin.right]);
 
-  const line = d3
-    .line<Record>()
-    .defined(d => !isNaN(d.value))
-    .x(d => x(d.date) as number)
-    .y(d => y(d.value) as number);
+      const yScale = d3
+        .scaleLinear<number>()
+        .domain([0, d3.max(data, d => d.value)] as [number, number])
+        .nice()
+        .range([height - margin.bottom, margin.top])
+        
+      const svg = d3
+        .select(parentEl)
+        .append("svg")
+        .attr("width", width) 
+        .attr("height", height) 
+        .attr("viewBox", `-30 0 ${width} ${height}`)
+      
+      const line = d3
+        .line<Record>()
+        .defined(d => !isNaN(d.value))
+        .x(d => xScale(d.date) as number)
+        .y(d => yScale(d.value) as number);
+    
+      const path = svg
+        .append("path")
+        .attr("class", "line")
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-LineJoin", "round")
+        .attr("stroke-Linecap", "round")
+        .attr("d", line(data) )
 
+      // select the path of the line and get the total length
+      // @ts-ignore
+      const pathLength = d3.select(".line").node().getTotalLength();
+
+      // add Animation to the line where it draws the line via time
+      ;
+      
+      svg
+        .append("g")
+        // .attr("transform", `translate(${margin.left}, 0)`)
+        .call(d3.axisLeft(yScale))
+        .append("g")
+        .attr("transform", `translate(0, ${height - margin.bottom} )`)
+        .call(d3.axisBottom(xScale))
+
+      svg.on("click", function() {
+        path
+        .attr("stroke-dashoffset", pathLength)
+        .attr("stroke-dasharray", pathLength)
+        .transition()
+        .ease(d3.easeSin)
+        .duration(5500)
+        .attr("stroke-dashoffset", 0);
+      })
+    }
+  })
   return (
-    <div>
-      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+    // @ts-ignore
+    <div ref={ref} >
+      {/* <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
         <g transform={`translate(0,${height - margin.bottom})`}>
           <Axis scale={x} orient={Orient.bottom} />
         </g>
@@ -1336,7 +1386,7 @@ export default function Test() {
           strokeLinecap="round"
           d={line(data) as string}
         />
-      </svg>
+      </svg> */}
     </div>
   );
 }
